@@ -84,6 +84,8 @@ class CityViewModel: ObservableObject {
 
 struct CityView: View {
     @ObservedObject var viewModel: CityViewModel
+    @State private var isCityAdded: Bool = false
+    @State private var addedCities: [String] = []
     var city: City
 
     var body: some View {
@@ -112,7 +114,26 @@ struct CityView: View {
                     displayWeatherData(index: index, weather: weather.hourly)
                 }
             }
-        }
+        }.navigationBarItems(trailing: Button(action: {
+            // Handle button tap for the top-right "Add" button
+            // You can perform any action here
+            if !isCityAdded {
+                addedCities.append("\(city.name): Lat \(city.latitude), Lon \(city.longitude)")
+                isCityAdded.toggle()
+            } else {
+                // Optionally, remove the city if it's already added
+                if let index = addedCities.firstIndex(of: "\(city.name): Lat \(city.latitude), Lon \(city.longitude)") {
+                    addedCities.remove(at: index)
+                    isCityAdded.toggle()
+                }
+            }
+            print("Top-right button tapped")
+            // Optionally, you can use the addedCities array as needed
+        }) {
+            Text(isCityAdded ? "Remove from List" : "Add to List")
+                .foregroundColor(.blue)
+        
+        })
     }
 
     private func displayWeatherData(index: Int, weather: WeatherData.HourlyData) -> some View {

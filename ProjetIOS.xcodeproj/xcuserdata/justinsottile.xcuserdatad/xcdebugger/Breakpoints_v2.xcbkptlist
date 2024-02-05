@@ -146,8 +146,8 @@
             filePath = "ProjetIOS/CityView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "90"
-            endingLineNumber = "90"
+            startingLineNumber = "92"
+            endingLineNumber = "92"
             landmarkName = "body"
             landmarkType = "24">
             <Locations>
@@ -194,42 +194,10 @@
             filePath = "ProjetIOS/CityView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "91"
-            endingLineNumber = "91"
+            startingLineNumber = "93"
+            endingLineNumber = "93"
             landmarkName = "body"
             landmarkType = "24">
-            <Locations>
-               <Location
-                  uuid = "C8D2DA9F-4ECF-4BDB-8CE6-ACB3BE658D23 - 7054c7afd9f71cdf"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.overlay&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.View&gt;(alignment: SwiftUI.Alignment, content: () -&gt; &#x3c4;_1_0) -&gt; some&gt;&gt;.0, Swift.Optional&lt;SwiftUI.Text&gt;, Swift.Optional&lt;SwiftUI.ForEach&lt;Swift.Range&lt;Swift.Int&gt;, Swift.Int, &lt;&lt;opaque return type of ProjetIOS.CityView.displayWeatherData(index: Swift.Int, weather: ProjetIOS.WeatherData.HourlyData) -&gt; some&gt;&gt;.0&gt;&gt;)&gt; in ProjetIOS.CityView.body.getter : some"
-                  moduleName = "ProjetIOS"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/justinsottile/Documents/ProjetIOS/ProjetIOS/IOS_Project/ProjetIOS/CityView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "91"
-                  endingLineNumber = "91"
-                  offsetFromSymbolStart = "1168">
-               </Location>
-               <Location
-                  uuid = "C8D2DA9F-4ECF-4BDB-8CE6-ACB3BE658D23 - 7054c7afd9f71cdf"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.overlay&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.View&gt;(alignment: SwiftUI.Alignment, content: () -&gt; &#x3c4;_1_0) -&gt; some&gt;&gt;.0, Swift.Optional&lt;SwiftUI.Text&gt;, Swift.Optional&lt;SwiftUI.ForEach&lt;Swift.Range&lt;Swift.Int&gt;, Swift.Int, &lt;&lt;opaque return type of ProjetIOS.CityView.displayWeatherData(index: Swift.Int, weather: ProjetIOS.WeatherData.HourlyData) -&gt; some&gt;&gt;.0&gt;&gt;)&gt; in ProjetIOS.CityView.body.getter : some"
-                  moduleName = "ProjetIOS"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/justinsottile/Documents/ProjetIOS/ProjetIOS/IOS_Project/ProjetIOS/CityView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "91"
-                  endingLineNumber = "91"
-                  offsetFromSymbolStart = "1112">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
