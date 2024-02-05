@@ -68,16 +68,15 @@ struct Bird: Identifiable, Decodable {
 
 
 struct SecondView: View {
-    var birds: [Bird] = [
-        Bird(commonName: "Mésange charbonnière", imagePath: "Parus major"),
-        Bird(commonName: "Pinson des arbres", imagePath: "Fringilla coelebs"),
-        Bird(commonName: "Merle noir", imagePath: "Turdus merula")
-    ]
+    @State private var searchText: String = ""
+    @State private var birds: [Bird] = []
 
     var body: some View {
         NavigationView {
-            List {
-                ForEach(birds) { bird in
+            VStack {
+                SearchBar(text: $searchText, onSearch: fetchBirds)
+                
+                List(birds) { bird in
                     HStack {
                         NavigationLink(destination: Text(bird.commonName)) {
                             Image(bird.imagePath)
@@ -85,85 +84,90 @@ struct SecondView: View {
                                 .frame(width: 32, height: 32)
                             Text(bird.commonName)
                         }
-                    }}
-            }
-            .listStyle(PlainListStyle())
-            .navigationTitle(
-                Text("All ville"))
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: addBird) {
-                        Text("Add")
                     }
                 }
-            }
-            List {
-                Section(header: Text("Individus")) {
-                    ForEach(birds) { bird in
-                        HStack {
-                            Image(systemName: bird.imagePath) // Use an SF Symbol or provide a valid image name
-                                .resizable()
-                                .frame(width: 32, height: 32)
-                            Text(bird.commonName)
+                .listStyle(PlainListStyle())
+                .navigationTitle(Text("All ville"))
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: addBird) {
+                            Text("Add")
                         }
                     }
                 }
             }
-            .navigationBarTitle("Birds List", displayMode: .inline)
+        }
+        .onAppear {
+            // Fetch initial data when the view appears
+            fetchBirds()
         }
     }
+
     func addBird() {
         // Implementation goes here
     }
-        func fetch() async {
-            let name = "YourPlaceName" // Replace with the actual place name
 
-            guard let url = URL(string: "https://geocoding-api.open-meteo.com/v1/search?name=\(name)&count=10&language=fr&format=json") else {
-                print("Invalid URL")
-                return
-            }
-            
+    func fetchBirds() {
+        guard !searchText.isEmpty else {
+            // Handle the case where searchText is empty
+            return
+        }
+
+        Task {
             do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                // Process the raw data result
-                print(String(data: data, encoding: .utf8))
-                // Handle the raw data as needed
-                // ...
-                
+                birds = try await secondfetch(for: searchText)
             } catch {
                 print(error)
             }
         }
-        func secondfetch() async throws -> [Bird] {
-            let name = "YourPlaceName" // Replace with the actual place name
-            enum YourError: Error {
-                case invalidURL
-            }
-            guard let url = URL(string: "https://geocoding-api.open-meteo.com/v1/search?name=\(name)&count=10&language=fr&format=json") else {
-                print("Invalid URL")
-                throw YourError.invalidURL
-            }
+    }
 
-            do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                // Process the raw data result
-                print(String(data: data, encoding: .utf8))
-                // Handle the raw data as needed
-                // ...
-
-                // Mocking data for testing, replace it with your actual parsing logic
-               
-                let decodedBirds = try JSONDecoder().decode([Bird].self, from: data)
-                return decodedBirds
-            } catch {
-                print(error)
-                throw error
-            }
+    func secondfetch(for placeName: String) async throws -> [Bird] {
+        guard let url = URL(string: "https://geocoding-api.open-meteo.com/v1/search?name=\(placeName)&count=10&language=fr&format=json") else {
+            print("Invalid URL")
+            throw ErrorPerso.invalidURL
         }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let decodedBirds = try JSONDecoder().decode([Bird].self, from: data)
+            return decodedBirds
+        } catch {
+            print(error)
+            throw error
+        }
+    }
 }
 
 
+struct SearchBar: View {
+    @Binding var text: String
+    var onSearch: () -> Void
 
+    var body: some View {
+        HStack {
+            TextField("Search", text: $text, onCommit: {
+                onSearch()
+            })
+            .textFieldStyle(RoundedBorderTextFieldStyle())
+            .padding(.horizontal)
+
+            Button(action: {
+                text = ""
+                onSearch()
+            }) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.gray)
+                    .padding(.trailing, 8)
+            }
+        }
+    }
+}
+
+enum ErrorPerso: Error {
+    case invalidURL
+    case decodingFailed
+}
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
