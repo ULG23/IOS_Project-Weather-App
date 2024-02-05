@@ -89,7 +89,7 @@ struct CityView: View {
     var body: some View {
         VStack {
             Text(city.name)
-                .onTapGesture {
+                .onAppear {
                     Task {
                         await viewModel.fetchCityWeather(latitude: city.latitude, longitude: city.longitude)
                     }

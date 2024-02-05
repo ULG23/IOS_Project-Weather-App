@@ -32,7 +32,7 @@ struct ContentView: View {
                 Image(systemName: "arrow.left.circle")
                     .imageScale(.large)
             }))
-            .navigationBarTitle("Switch UI Example", displayMode: .inline)
+            .navigationBarTitle("Météo", displayMode: .inline)
         }
     }
 }
@@ -101,13 +101,6 @@ struct SecondView: View {
                 }
                 .listStyle(PlainListStyle())
                 .navigationTitle(Text("All Cities"))
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: addCity) {
-                            Text("Add")
-                        }
-                    }
-                }
             }
         }
         .onAppear {
@@ -115,9 +108,6 @@ struct SecondView: View {
         }
     }
     
-    func addCity() {
-
-    }
     
     func fetchCities() {
         guard !searchText.isEmpty else {
@@ -168,6 +158,14 @@ struct SecondView: View {
 
         var body: some View {
             HStack {
+                /** refresh a chaque input
+                 TextField("Search", text: $text)
+                                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                                 .padding(.horizontal)
+                                 .onChange(of: text) { _ in
+                                     onSearch()
+                                 }
+                 */
                 TextField("Search", text: $text, onCommit: {
                     onSearch()
                 })
