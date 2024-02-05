@@ -13,7 +13,6 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack {
-                // Your Switch UI goes here
                 Text("Switch UI Content")
                     .padding()
 
@@ -38,12 +37,6 @@ struct ContentView: View {
     }
 }
 
-
-struct Bird: Identifiable, Decodable {
-    var id = UUID()
-    var commonName: String
-    var imagePath: String
-}
 struct City: Identifiable,Decodable {
     let id: Int
     let name: String
@@ -91,17 +84,18 @@ struct City: Identifiable,Decodable {
     }
 }
 
+
 struct SecondView: View {
     @State private var searchText: String = ""
     @State private var cities: [City] = []
-
+    
     var body: some View {
         NavigationView {
             VStack {
                 SearchBar(text: $searchText, onSearch: fetchCities)
-
+                
                 List(cities) { city in
-                    NavigationLink(destination: Text("\(city.name): Lat \(city.latitude), Lon \(city.longitude)")) {
+                    NavigationLink(destination: CityView(viewModel: CityViewModel(), city: city)) {
                         Text(city.name)
                     }
                 }
@@ -117,41 +111,40 @@ struct SecondView: View {
             }
         }
         .onAppear {
-            // Fetch initial data when the view appears
             fetchCities()
         }
     }
-
+    
     func addCity() {
-        // Implementation goes here
-    }
 
+    }
+    
     func fetchCities() {
         guard !searchText.isEmpty else {
             return
         }
-
+        
         Task {
             do {
                 cities = try await secondfetch(for: searchText)
             } catch {
-                print(error)
+                print("Error fetching cities: \(error)")
             }
         }
     }
-
+    
     func secondfetch(for placeName: String) async throws -> [City] {
         guard let url = URL(string: "https://geocoding-api.open-meteo.com/v1/search?name=\(placeName)&count=2&language=fr&format=json") else {
             print("Invalid URL")
             throw ErrorPerso.invalidURL
         }
-
+        
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-
+            
             // Decode the top-level JSON as a dictionary
             let topLevelJSON = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-
+            
             // Extract the array of cities from the "results" key
             if let results = topLevelJSON?["results"] as? [[String: Any]] {
                 // Convert the array of dictionaries to JSON data
@@ -167,7 +160,7 @@ struct SecondView: View {
             throw error
         }
     }
-
+}
 
     struct SearchBar: View {
         @Binding var text: String
@@ -196,9 +189,9 @@ struct SecondView: View {
     enum ErrorPerso: Error {
         case invalidURL
         case decodingFailed
-        // Add more error cases as needed
+        case fetchFailed
     }
-}
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
