@@ -9,8 +9,7 @@ import SwiftUI
 
 
 class AddedCities: ObservableObject {
-    @Published var addedCities: [String] = []
-    
+    @Published var addedCities: [City] = []
 }
 
 @main

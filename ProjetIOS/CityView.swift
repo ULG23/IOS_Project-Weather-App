@@ -86,7 +86,8 @@ struct CityView: View {
     @ObservedObject var viewModel: CityViewModel
     @State private var isCityAdded: Bool = false
     @EnvironmentObject var addedcity: AddedCities
-   
+    
+    
     var city: City
     
     var body: some View {
@@ -103,7 +104,8 @@ struct CityView: View {
                 Text("Error: \(errorMessage)")
                     .foregroundColor(.red)
             }
-            
+
+
             // Display weather data if available
             if let weather = viewModel.weatherForecast {
                 ScrollView {
@@ -122,20 +124,25 @@ struct CityView: View {
         }
         .onAppear {
             Task {
-                await viewModel.fetchCityWeather(latitude: city.latitude, longitude: city.longitude)
+                await viewModel.fetchCityWeather(latitude: city.latitude, longitude: city.longitude);
+                isCityAdded = addedcity.addedCities.firstIndex(where: { $0.id == city.id }) != nil ? true : false
             }
         }.navigationBarItems(trailing: Button(action: {
             // Handle button tap for the top-right "Add" button
             // You can perform any action here
+           
             if !isCityAdded {
-                addedcity.addedCities.append("\(city.name): Lat \(city.latitude), Lon \(city.longitude)")
+                //addedcity.addedCities.append("\(city.name): Lat \(city.latitude), Lon \(city.longitude)")
+                addedcity.addedCities.append(city)
                 isCityAdded.toggle()
             } else {
                 // Optionally, remove the city if it's already added
-                if let index = addedcity.addedCities.firstIndex(of: "\(city.name): Lat \(city.latitude), Lon \(city.longitude)") {
+                //if let index = addedcity.addedCities.firstIndex(of: "\(city.name): Lat \(city.latitude), Lon \(city.longitude)") {
+                if let index = addedcity.addedCities.firstIndex(where: { $0.id == city.id }) {
                     addedcity.addedCities.remove(at: index)
                     isCityAdded.toggle()
                 }
+
             }
             print("Top-right button tapped")
             // Optionally, you can use the addedCities array as needed
@@ -213,17 +220,3 @@ extension Float {
         return String(format: "%.1f", self)
     }
 }
-
-class Cities: ObservableObject, Identifiable {
-    let id = UUID()
-    let name: String
-    let latitude: Double
-    let longitude: Double
-    
-    init(name: String, latitude: Double, longitude: Double) {
-        self.name = name
-        self.latitude = latitude
-        self.longitude = longitude
-    }
-}
-

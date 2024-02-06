@@ -25,11 +25,13 @@ struct ContentView: View {
                     label: {
                         EmptyView()
                     });
-                List {
-                    ForEach($favorite.addedCities, id: \.self) { cityBinding in
-                        Text(cityBinding.wrappedValue)
+                List(favorite.addedCities) { city in
+                    NavigationLink(destination: CityView(viewModel: CityViewModel(), city: city)) {
+                        Text(city.name)
                     }
-                }
+                };
+
+            
 
             }
             .navigationBarItems(leading: Button(action: {
