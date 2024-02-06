@@ -143,7 +143,6 @@ struct CityView: View {
                 .foregroundColor(.blue)
         
         })
-        })
     }
     
     private func displayWeatherData(index: Int, weather: WeatherData.HourlyData) -> some View {
