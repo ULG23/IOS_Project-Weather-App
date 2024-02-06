@@ -135,6 +135,7 @@ struct CityView: View {
                     addedCities.remove(at: index)
                     isCityAdded.toggle()
                 }
+            }
             print("Top-right button tapped")
             // Optionally, you can use the addedCities array as needed
         }) {
