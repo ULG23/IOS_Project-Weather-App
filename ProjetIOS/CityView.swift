@@ -87,32 +87,41 @@ struct CityView: View {
     @State private var isCityAdded: Bool = false
     @State private var addedCities: [String] = []
     var city: City
-
+    
     var body: some View {
         VStack {
             Text(city.name)
-                .onAppear {
-                    Task {
-                        await viewModel.fetchCityWeather(latitude: city.latitude, longitude: city.longitude)
-                    }
-                }
-
-                .overlay {
-                    if viewModel.isFetchingWeather {
-                        ProgressView()
-                    }
-                }
-
+                .font(.title)
+                .padding()
+            
+            if viewModel.isFetchingWeather {
+                ProgressView()
+            }
+            
             if let errorMessage = viewModel.errorMessage {
                 Text("Error: \(errorMessage)")
                     .foregroundColor(.red)
             }
-
+            
             // Display weather data if available
             if let weather = viewModel.weatherForecast {
-                ForEach(weather.hourly.time.indices, id: \.self) { index in
-                    displayWeatherData(index: index, weather: weather.hourly)
+                ScrollView {
+                    LazyVStack {
+                        ForEach(weather.hourly.time.indices, id: \.self) { index in
+                            displayWeatherData(index: index, weather: weather.hourly)
+                                .padding()
+                                .background(Color.gray)
+                                .cornerRadius(10)
+                                .shadow(radius: 5)
+                                .padding(.horizontal)
+                        }
+                    }
                 }
+            }
+        }
+        .onAppear {
+            Task {
+                await viewModel.fetchCityWeather(latitude: city.latitude, longitude: city.longitude)
             }
         }.navigationBarItems(trailing: Button(action: {
             // Handle button tap for the top-right "Add" button
@@ -126,7 +135,6 @@ struct CityView: View {
                     addedCities.remove(at: index)
                     isCityAdded.toggle()
                 }
-            }
             print("Top-right button tapped")
             // Optionally, you can use the addedCities array as needed
         }) {
@@ -134,19 +142,74 @@ struct CityView: View {
                 .foregroundColor(.blue)
         
         })
+        })
     }
-
+    
     private func displayWeatherData(index: Int, weather: WeatherData.HourlyData) -> some View {
-        let date = weather.time.indices.contains(index) ? weather.time[index] : ""
-        return VStack {
-            Text(date)
-            Text("Temperature: \(index < weather.temperature_2m.count ? String(weather.temperature_2m[index]) : "")")
-                   Text("Relative Humidity: \(index < weather.relative_humidity_2m.count ? String(weather.relative_humidity_2m[index]) : "")")
-                   Text("Precipitation Probability: \(index < weather.precipitation_probability.count ? String(weather.precipitation_probability[index]) : "")")
-                   Text("Rain: \(index < weather.rain.count ? String(weather.rain[index]) : "")")
-                   Text("Showers: \(index < weather.showers.count ? String(weather.showers[index]) : "")")
-                   Text("Surface Pressure: \(index < weather.surface_pressure.count ? String(weather.surface_pressure[index]) : "")")
-                   Text("Wind Speed: \(index < weather.wind_speed_10m.count ? String(weather.wind_speed_10m[index]) : "")")
+        VStack(alignment: .leading) {
+            Text(weather.time.indices.contains(index) ? weather.time[index] : "")
+                .font(.headline)
+            
+            if index < weather.temperature_2m.count {
+                Text("Temperature: \(String(format: "%.1f", weather.temperature_2m[index]))°C")
+            }
+            if index < weather.relative_humidity_2m.count {
+                Text("Relative Humidity: \(weather.relative_humidity_2m[index])%")
+            }
+            if index < weather.precipitation_probability.count {
+                Text("Precipitation Probability: \(weather.precipitation_probability[index])%")
+            }
+            if index < weather.rain.count {
+                Text("Rain: \(String(format: "%.1f", weather.rain[index])) mm")
+            }
+            if index < weather.showers.count {
+                Text("Showers: \(String(format: "%.1f", weather.showers[index])) mm")
+            }
+            if index < weather.surface_pressure.count {
+                Text("Surface Pressure: \(String(format: "%.1f", weather.surface_pressure[index])) hPa")
+            }
+            if index < weather.wind_speed_10m.count {
+                Text("Wind Speed: \(String(format: "%.1f", weather.wind_speed_10m[index])) m/s")
+            }
         }
     }
 }
+
+    
+    struct WeatherInfoRow: View {
+        var title: String
+        var value: String
+        
+        var body: some View {
+            HStack {
+                Text(title)
+                Spacer()
+                Text(value)
+            }
+        }
+    }
+    
+    extension Array where Element: Any {
+        func element(at index: Int) -> Element? {
+            return indices.contains(index) ? self[index] : nil
+        }
+    }
+    
+    extension Float {
+        func formattedTemperature() -> String {
+            return String(format: "%.1f", self) + "°"
+        }
+        
+        func formattedRain() -> String {
+            return String(format: "%.1f", self)
+        }
+        
+        func formattedPressure() -> String {
+            return String(format: "%.2f", self)
+        }
+        
+        func formattedWindSpeed() -> String {
+            return String(format: "%.1f", self)
+        }
+    }
+    
