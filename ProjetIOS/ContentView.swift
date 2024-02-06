@@ -42,6 +42,7 @@ struct ContentView: View {
                     .imageScale(.large)
             }))
             .navigationBarTitle("Météo", displayMode: .inline)
+            .foregroundColor(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
         }
     }
 }
