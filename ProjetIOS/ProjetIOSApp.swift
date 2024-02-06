@@ -7,11 +7,21 @@
 
 import SwiftUI
 
+
+class AddedCities: ObservableObject {
+    @Published var addedCities: [String] = []
+    
+}
+
 @main
 struct ProjetIOSApp: App {
+    let addedCities = AddedCities()
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView().environmentObject(addedCities)
         }
     }
 }
+
+
+

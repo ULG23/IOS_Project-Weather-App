@@ -85,7 +85,8 @@ class CityViewModel: ObservableObject {
 struct CityView: View {
     @ObservedObject var viewModel: CityViewModel
     @State private var isCityAdded: Bool = false
-    @State private var addedCities: [String] = []
+    @EnvironmentObject var addedcity: AddedCities
+   
     var city: City
     
     var body: some View {
@@ -127,12 +128,12 @@ struct CityView: View {
             // Handle button tap for the top-right "Add" button
             // You can perform any action here
             if !isCityAdded {
-                addedCities.append("\(city.name): Lat \(city.latitude), Lon \(city.longitude)")
+                addedcity.addedCities.append("\(city.name): Lat \(city.latitude), Lon \(city.longitude)")
                 isCityAdded.toggle()
             } else {
                 // Optionally, remove the city if it's already added
-                if let index = addedCities.firstIndex(of: "\(city.name): Lat \(city.latitude), Lon \(city.longitude)") {
-                    addedCities.remove(at: index)
+                if let index = addedcity.addedCities.firstIndex(of: "\(city.name): Lat \(city.latitude), Lon \(city.longitude)") {
+                    addedcity.addedCities.remove(at: index)
                     isCityAdded.toggle()
                 }
             }
@@ -176,40 +177,53 @@ struct CityView: View {
 }
 
     
-    struct WeatherInfoRow: View {
-        var title: String
-        var value: String
-        
-        var body: some View {
-            HStack {
-                Text(title)
-                Spacer()
-                Text(value)
-            }
+struct WeatherInfoRow: View {
+    var title: String
+    var value: String
+    
+    var body: some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(value)
         }
     }
-    
-    extension Array where Element: Any {
-        func element(at index: Int) -> Element? {
-            return indices.contains(index) ? self[index] : nil
-        }
+}
+
+extension Array where Element: Any {
+    func element(at index: Int) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}
+
+extension Float {
+    func formattedTemperature() -> String {
+        return String(format: "%.1f", self) + "°"
     }
     
-    extension Float {
-        func formattedTemperature() -> String {
-            return String(format: "%.1f", self) + "°"
-        }
-        
-        func formattedRain() -> String {
-            return String(format: "%.1f", self)
-        }
-        
-        func formattedPressure() -> String {
-            return String(format: "%.2f", self)
-        }
-        
-        func formattedWindSpeed() -> String {
-            return String(format: "%.1f", self)
-        }
+    func formattedRain() -> String {
+        return String(format: "%.1f", self)
     }
     
+    func formattedPressure() -> String {
+        return String(format: "%.2f", self)
+    }
+    
+    func formattedWindSpeed() -> String {
+        return String(format: "%.1f", self)
+    }
+}
+
+class Cities: ObservableObject, Identifiable {
+    let id = UUID()
+    let name: String
+    let latitude: Double
+    let longitude: Double
+    
+    init(name: String, latitude: Double, longitude: Double) {
+        self.name = name
+        self.latitude = latitude
+        self.longitude = longitude
+    }
+}
+

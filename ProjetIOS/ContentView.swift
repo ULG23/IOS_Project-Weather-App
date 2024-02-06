@@ -9,7 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var isSecondViewPresented = false
-
+    @EnvironmentObject var favorite: AddedCities
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -23,7 +24,13 @@ struct ContentView: View {
                     isActive: $isSecondViewPresented,
                     label: {
                         EmptyView()
-                    })
+                    });
+                List {
+                    ForEach($favorite.addedCities, id: \.self) { cityBinding in
+                        Text(cityBinding.wrappedValue)
+                    }
+                }
+
             }
             .navigationBarItems(leading: Button(action: {
                 // Button action to present the SecondView
