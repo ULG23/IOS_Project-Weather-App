@@ -95,6 +95,34 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B07BD6BD2B73EB6B00FD9227 /* Page */ = {
+			isa = PBXGroup;
+			children = (
+				B0D3AD562B6DA5BD00E3E70D /* ContentView.swift */,
+				4FD5F4912B713709008983CE /* CityView.swift */,
+				B07BD6B62B73E90500FD9227 /* SecondView.swift */,
+			);
+			path = Page;
+			sourceTree = "<group>";
+		};
+		B07BD6BE2B73EB8A00FD9227 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				B0D3AD542B6DA5BD00E3E70D /* ProjetIOSApp.swift */,
+				B07BD6BB2B73E99400FD9227 /* StructWeatherData.swift */,
+				4F8467422B739FC90042B3A2 /* HeaderView.swift */,
+				4F8467402B72CE6B0042B3A2 /* WeatherRow.swift */,
+				4F84673E2B72CDD10042B3A2 /* Extensions.swift */,
+				4F8467482B73A1A90042B3A2 /* AsyncImageView.swift */,
+				4F84674A2B73A2A80042B3A2 /* WeatherConditionView.swift */,
+				4F8467462B73A0280042B3A2 /* DailyWeatherView.swift */,
+				4F8467442B73A0000042B3A2 /* WeatherTabView.swift */,
+				B07BD6B92B73E94D00FD9227 /* StructCity.swift */,
+				B07BD6B42B73E8AE00FD9227 /* SearchBar.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
 		B0D3AD482B6DA5BD00E3E70D = {
 			isa = PBXGroup;
 			children = (
@@ -117,20 +145,8 @@
 		B0D3AD532B6DA5BD00E3E70D /* ProjetIOS */ = {
 			isa = PBXGroup;
 			children = (
-				B0D3AD542B6DA5BD00E3E70D /* ProjetIOSApp.swift */,
-				B0D3AD562B6DA5BD00E3E70D /* ContentView.swift */,
-				4FD5F4912B713709008983CE /* CityView.swift */,
-				4F84673E2B72CDD10042B3A2 /* Extensions.swift */,
-				4F8467402B72CE6B0042B3A2 /* WeatherRow.swift */,
-				4F8467422B739FC90042B3A2 /* HeaderView.swift */,
-				4F8467442B73A0000042B3A2 /* WeatherTabView.swift */,
-				4F8467462B73A0280042B3A2 /* DailyWeatherView.swift */,
-				4F8467482B73A1A90042B3A2 /* AsyncImageView.swift */,
-				B07BD6B62B73E90500FD9227 /* SecondView.swift */,
-				B07BD6BB2B73E99400FD9227 /* StructWeatherData.swift */,
-				B07BD6B92B73E94D00FD9227 /* StructCity.swift */,
-				4F84674A2B73A2A80042B3A2 /* WeatherConditionView.swift */,
-				B07BD6B42B73E8AE00FD9227 /* SearchBar.swift */,
+				B07BD6BE2B73EB8A00FD9227 /* View */,
+				B07BD6BD2B73EB6B00FD9227 /* Page */,
 				B0D3AD642B6DA5BF00E3E70D /* ProjetIOSTests */,
 				B0D3AD582B6DA5BE00E3E70D /* Assets.xcassets */,
 				B0D3AD5A2B6DA5BE00E3E70D /* Preview Content */,
