@@ -74,11 +74,6 @@ struct ContentView: View {
                         //.padding(20)
                         .scrollContentBackground(.hidden)
                     }
-                    .listRowBackground(
-                        Capsule()
-                            .fill(Color.blue)
-                            .padding(2)
-                    )
                 }
             }
             .navigationBarItems(trailing: Button(action: {
