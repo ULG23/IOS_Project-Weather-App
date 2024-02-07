@@ -22,9 +22,10 @@ struct WeatherData: Decodable {
     struct Current: Decodable {
         let time: Date
         let temperature_2m: Float
+        let weather_code: Float
 
         private enum CodingKeys: String, CodingKey {
-            case time, temperature_2m
+            case time, temperature_2m, weather_code
         }
 
         init(from decoder: Decoder) throws {
@@ -36,9 +37,9 @@ struct WeatherData: Decodable {
             }
             self.time = time
             self.temperature_2m = try container.decode(Float.self, forKey: .temperature_2m)
+            self.weather_code = try container.decode(Float.self, forKey: .weather_code)
         }
     }
-
 
 
     struct Daily: Decodable {
@@ -102,15 +103,14 @@ class CityViewModel: ObservableObject {
     }
     
     func fetchWeatherData(latitude: Double, longitude: Double) async throws -> WeatherData {
-        let urlString = "https://api.open-meteo.com/v1/forecast?latitude=\(latitude)&longitude=\(longitude)&current=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunshine_duration,precipitation_sum,rain_sum,precipitation_probability_max,wind_speed_10m_max&format=json"
+        let urlString = "https://api.open-meteo.com/v1/forecast?latitude=\(latitude)&longitude=\(longitude)&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,sunshine_duration,precipitation_sum,rain_sum,precipitation_probability_max,wind_speed_10m_max&format=json"
         guard let url = URL(string: urlString) else {
             throw ErrorPerso.invalidURL
         }
 
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            let temp = try JSONDecoder().decode(WeatherData.self, from: data)
-            return temp
+            return try JSONDecoder().decode(WeatherData.self, from: data)
         } catch {
             // Assuming you want to print or log the error before throwing it
             print("Error fetching city weather: \(error)")
@@ -119,133 +119,216 @@ class CityViewModel: ObservableObject {
     }
 }
 
+//struct CityView: View {
+//    @ObservedObject var viewModel: CityViewModel
+//    @State private var isCityAdded: Bool = false
+//    @EnvironmentObject var addedcity: AddedCities
+//    
+//    var city: City
+//    
+//    var body: some View {
+//        VStack(spacing: 0) {
+//            // Upper part of the view
+//            ZStack(alignment: .leading) {
+//                VStack(alignment: .leading, spacing: 5) {
+//                    Text(city.name)
+//                        .bold()
+//                        .font(.title)
+//                    
+//                    Text("Today, \(Date().formatted(.dateTime.month().day().hour().minute()))")
+//                        .fontWeight(.light)
+//                }
+//                .padding()
+//                .frame(maxWidth: .infinity, alignment: .leading)
+//                
+//                Spacer()
+//                
+//                VStack {
+//                    // Your existing content
+//                    HStack {
+//                        VStack(spacing: 20) {
+//                            Image(systemName: "cloud")
+//                                .font(.system(size: 40))
+//                            
+//                            Text("WeatherCondition")
+//                        }
+//                        .frame(width: 150, alignment: .leading)
+//                        
+//                        Spacer()
+//                        
+//                        Text("Actual Temperature: \(viewModel.weatherForecast?.current.temperature_2m.roundDouble() ?? "0")°")
+//                            .font(.system(size: 20))
+//                            .fontWeight(.bold)
+//                            .padding()
+//                    }
+//                    
+//                    Spacer()
+//                        .frame(height:  80)
+//                    
+//                    AsyncImage(url: URL(string: "https://cdn.pixabay.com/photo/2020/04/18/01/04/cityscape-5057263_1280.png")) { image in
+//                        image
+//                            .resizable()
+//                            .aspectRatio(contentMode: .fit)
+//                            .frame(width: 350)
+//                    } placeholder: {
+//                        ProgressView()
+//                    }
+//                    
+//                    Spacer()
+//                }
+//                .frame(maxWidth: .infinity, alignment: .trailing)
+//            }
+//            .background(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
+//            .preferredColorScheme(.dark)
+//            
+//            // TabView at the bottom
+//            TabView {
+//                ForEach(viewModel.weatherForecast?.daily.time.indices ?? 0..<0, id: \.self) { index in
+//                    VStack(alignment: .leading, spacing: 20) {
+//                        Text("Weather for Day \(index + 1)")
+//                            .bold()
+//                            .padding(.bottom)
+//                        
+//                        HStack {
+//                            WeatherRow(logo: "thermometer", name: "Temperature Max", value: "\(viewModel.weatherForecast?.daily.temperature_2m_max[index].roundDouble() ?? "0")°")
+//                            Spacer()
+//                            WeatherRow(logo: "cloud.rain", name: "Rain", value: "\(viewModel.weatherForecast?.daily.rain_sum[index].roundDouble() ?? "0")%")
+//                        }
+//                        
+//                        HStack {
+//                            WeatherRow(logo: "wind", name: "Wind Max Speed", value: "\(viewModel.weatherForecast?.daily.wind_speed_10m_max[index].roundDouble() ?? "0") m/s")
+//                            Spacer()
+//                            WeatherRow(logo: "sun.horizon.fill", name: "Sunshine Duration", value: {
+//                                let sunshineDurationInSeconds = viewModel.weatherForecast?.daily.sunshine_duration[index] ?? 0
+//                                let convertedDuration = Float(sunshineDurationInSeconds).secondsToHoursMinutes()
+//                                
+//                                return "\(convertedDuration.hours)h \(convertedDuration.minutes)min"
+//                            }())
+//                        }
+//                    }
+//                    .padding()
+//                    .tag(index)
+//                }
+//            }
+//            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+//            .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+//            .frame(height: 200)
+//        }
+//        .edgesIgnoringSafeArea(.bottom)
+//        .onAppear {
+//            Task {
+//                await viewModel.fetchCityWeather(latitude: city.latitude, longitude: city.longitude)
+//                isCityAdded = addedcity.addedCities.firstIndex(where: { $0.id == city.id }) != nil ? true : false
+//            }
+//        }
+//        .navigationBarItems(trailing: Button(action: {
+//            if !isCityAdded {
+//                addedcity.addedCities.append(city)
+//                isCityAdded.toggle()
+//            } else {
+//                if let index = addedcity.addedCities.firstIndex(where: { $0.id == city.id }) {
+//                    addedcity.addedCities.remove(at: index)
+//                    isCityAdded.toggle()
+//                }
+//            }
+//            print("Top-right button tapped")
+//        }) {
+//            Text(isCityAdded ? "Remove from List" : "Add to List")
+//                .foregroundColor(.blue)
+//        })
+//    }
+//}
+
+
+
 struct CityView: View {
     @ObservedObject var viewModel: CityViewModel
     @State private var isCityAdded: Bool = false
-    @EnvironmentObject var addedcity: AddedCities
-    
+    @EnvironmentObject var addedCity: AddedCities
     
     var city: City
     
     var body: some View {
-          ZStack(alignment: .leading) {
-              VStack {
-                  VStack(alignment: .leading, spacing: 5) {
-                      Text(city.name)
-                          .bold()
-                          .font(.title)
-                      
-                      Text("Today, \(Date().formatted(.dateTime.month().day().hour().minute()))")
-                          .fontWeight(.light)
-                  }
-                  .frame(maxWidth: .infinity, alignment: .leading)
-                  
-                  Spacer()
-                  
-                  VStack {
-                      HStack {
-                          VStack(spacing: 20) {
-                              Image(systemName: "cloud")
-                                  .font(.system(size: 40))
-                              
-                              Text("WeatherCondition")
-                          }
-                          .frame(width: 150, alignment: .leading)
-                          
-                          Spacer()
-                          
-                          Text("Actual Temperature: \(viewModel.weatherForecast?.current.temperature_2m.roundDouble() ?? "0")°")
-                              .font(.system(size: 20))
-                              .fontWeight(.bold)
-                              .padding()
-                      }
-                      
-                      Spacer()
-                          .frame(height:  80)
-                      
-                      AsyncImage(url: URL(string: "https://cdn.pixabay.com/photo/2020/01/24/21/33/city-4791269_960_720.png")) { image in
-                          image
-                              .resizable()
-                              .aspectRatio(contentMode: .fit)
-                              .frame(width: 350)
-                      } placeholder: {
-                          ProgressView()
-                      }
-                      
-                      Spacer()
-                  }
-                  .frame(maxWidth: .infinity, alignment: .trailing)
-              }
-              .padding()
-              .frame(maxWidth: .infinity, alignment: .leading)
-              
-              VStack {
-                  Spacer()
-                  VStack(alignment: .leading, spacing: 20) {
-                      Text("Weather now")
-                          .bold()
-                          .padding(.bottom)
-                      
-                      HStack {
-                          WeatherRow(logo: "thermometer", name: "Temperature Max", value: "\(viewModel.weatherForecast?.daily.temperature_2m_max.first?.roundDouble() ?? "0")°")
-                          Spacer()
-                          WeatherRow(logo: "cloud.rain", name: "Rain", value: "\(viewModel.weatherForecast?.daily.rain_sum.first?.roundDouble() ?? "0")%")
-                      }
-                      
-                      HStack {
-                          WeatherRow(logo: "wind", name: "Wind Max Speed", value: "\(viewModel.weatherForecast?.daily.wind_speed_10m_max.first?.roundDouble() ?? "0") m/s")
-                          Spacer()
-                          WeatherRow(logo: "sun.horizon.fill", name: "Sunshine Duration", value: {
-                              let sunshineDurationInMinutes = viewModel.weatherForecast?.daily.sunshine_duration.first ?? 0
-                              let convertedDuration = sunshineDurationInMinutes.minutesToHoursMinutes()
-                              
-                              return "\(convertedDuration.hours)h \(convertedDuration.minutes)min"
-                          }())
-                      }
-                  }
-                  .frame(maxWidth: .infinity, alignment: .leading)
-                  .padding()
-                  .padding(.bottom, 20)
-                  .foregroundColor(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
-                  .background(.white)
-              }
-          }
-          .edgesIgnoringSafeArea(.bottom)
-          .background(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
-          .preferredColorScheme(.dark)
+        VStack(spacing: 0) {
+            // Upper part of the view
+            HeaderView(city: city, isCityAdded: $isCityAdded, addedCity: addedCity, viewModel: viewModel)
+            
+            // Content
+            ContentCityView(viewModel: viewModel)
+            
+            // TabView at the bottom
+            WeatherTabView(viewModel: viewModel)
+        }
+        .edgesIgnoringSafeArea(.bottom)
         .onAppear {
             Task {
-                await viewModel.fetchCityWeather(latitude: city.latitude, longitude: city.longitude);
-                isCityAdded = addedcity.addedCities.firstIndex(where: { $0.id == city.id }) != nil ? true : false
+                await viewModel.fetchCityWeather(latitude: city.latitude, longitude: city.longitude)
+                isCityAdded = addedCity.addedCities.contains { $0.id == city.id }
             }
-        }.navigationBarItems(trailing: Button(action: {
+        }
+    }
+}
+
+
+
+struct ContentCityView: View {
+    @ObservedObject var viewModel: CityViewModel
+    
+    var body: some View {
+        VStack {
+            HStack {
+                WeatherConditionView(weatherCode: viewModel.weatherForecast?.current.weather_code ?? 0.0)
+                Spacer()
+                
+                Text("Actual Temperature: \(viewModel.weatherForecast?.current.temperature_2m.roundDouble() ?? "0")°")
+                    .font(.system(size: 20))
+                    .fontWeight(.bold)
+                    .padding()
+                    .multilineTextAlignment(.center)
+            }
+            
+            Spacer().frame(height: 50)
+            
+            AsyncImageView(url: URL(string: "https://cdn.pixabay.com/photo/2020/04/18/01/04/cityscape-5057263_1280.png")).frame(maxHeight: 200)
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .background(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
+    }
+}
+
+struct AddRemoveButton: View {
+    @Binding var isCityAdded: Bool
+    @EnvironmentObject var addedCity: AddedCities 
+    var city: City
+
+    var body: some View {
+        Button(action: {
             if !isCityAdded {
-                //addedcity.addedCities.append("\(city.name): Lat \(city.latitude), Lon \(city.longitude)")
-                addedcity.addedCities.append(city)
+                addedCity.addedCities.append(city)
                 isCityAdded.toggle()
             } else {
-                // Optionally, remove the city if it's already added
-                //if let index = addedcity.addedCities.firstIndex(of: "\(city.name): Lat \(city.latitude), Lon \(city.longitude)") {
-                if let index = addedcity.addedCities.firstIndex(where: { $0.id == city.id }) {
-                    addedcity.addedCities.remove(at: index)
+                if let index = addedCity.addedCities.firstIndex(where: { $0.id == city.id }) {
+                    addedCity.addedCities.remove(at: index)
                     isCityAdded.toggle()
                 }
-
             }
-            print("Top-right button tapped")
         }) {
             Text(isCityAdded ? "Remove from List" : "Add to List")
                 .foregroundColor(.blue)
-        
-        })
+        }
     }
-    
-    private func formattedDate(from timestamp: String) -> String {
-          guard let date = convertToDate(timestamp: timestamp) else { return "" }
-          return date.formattedDate()
-      }
-
 }
+
+
+
+private func formattedDate(from timestamp: String) -> String {
+      guard let date = convertToDate(timestamp: timestamp) else { return "" }
+      return date.formattedDate()
+  }
+
+
 
 
 private func convertToDate(timestamp: String) -> Date? {

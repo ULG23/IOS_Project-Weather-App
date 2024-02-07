@@ -69,8 +69,12 @@ extension DateFormatter {
 }
 
 extension Float {
-    func minutesToHoursMinutes() -> (hours: Int, minutes: Int) {
-        let totalMinutes = Int(self)
-        return (totalMinutes / 60, totalMinutes % 60)
+    func secondsToHoursMinutes() -> (hours: Int, minutes: Int) {
+        let totalSeconds = Int(self)
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+
+        return (hours, minutes)
     }
 }
+
