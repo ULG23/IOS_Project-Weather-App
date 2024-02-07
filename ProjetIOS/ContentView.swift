@@ -14,8 +14,10 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack {
-                Text("Switch UI Content")
+                Text("Favorite Cities")
                     .padding()
+                    .foregroundColor(Color.white) // Set text color to white
+                    .font(.headline)
 
                 Spacer()
 
@@ -25,14 +27,21 @@ struct ContentView: View {
                     label: {
                         EmptyView()
                     });
-                //This scrollView don't work, problem with lot's of favorite (maybe with a section)
-               // ScrollView {
-                    List(favorite.addedCities) { city in
-                        NavigationLink(destination: CityView(viewModel: CityViewModel(), city: city)) {
-                            Text(city.name)
-                        }
-                    };
-              //  }
+                List(favorite.addedCities) { city in
+                    NavigationLink(destination: CityView(viewModel: CityViewModel(), city: city)) {
+                        Text(city.name)
+                            .foregroundColor(.white) // Set text color to white
+                            .font(.headline) // Apply headline font style
+                            .padding(10)
+                        Text(city.country)
+                    }
+                    .listRowBackground(
+                        Capsule()
+                            .fill(Color.blue)
+                            .padding(2)
+                    )// Set background color for list rows
+                }
+
 
 
             }
@@ -41,16 +50,25 @@ struct ContentView: View {
                 isSecondViewPresented = true
             }, label: {
                 HStack {
-                    Text("add")
-                    Image(systemName: "arrow.right.circle")
+                    Text("add cities")
+                        .foregroundColor(Color.blue)
+                    Image(systemName: "chevron.right") // Utilisez "chevron.left" pour la flèche de retour
                         .imageScale(.large)
+                        .foregroundColor(Color.blue)
                     
                 }
             }))
             .navigationBarTitle("Météo", displayMode: .inline)
             .foregroundColor(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
+            .preferredColorScheme(.dark)
         }
+
     }
+
+
+
+
+
 }
 
 struct City: Identifiable,Decodable {
@@ -113,12 +131,14 @@ struct SecondView: View {
                 List(cities) { city in
                     NavigationLink(destination: CityView(viewModel: CityViewModel(), city: city)) {
                         Text(city.name)
+                        Text(city.country)
                     }
                 }
                 .listStyle(PlainListStyle())
                 .navigationTitle(Text("All Cities"))
             }
         }
+        .preferredColorScheme(.dark)
         .onAppear {
             fetchCities()
         }
@@ -126,55 +146,88 @@ struct SecondView: View {
     
     
     func fetchCities() {
-        guard !searchText.isEmpty else {
-            return
-        }
-        
-        Task {
-            do {
-                cities = try await secondfetch(for: searchText)
-            } catch {
-                print("Error fetching cities: \(error)")
-            }
-        }
-    }
-    
-    func secondfetch(for placeName: String) async throws -> [City] {
-        guard let url = URL(string: "https://geocoding-api.open-meteo.com/v1/search?name=\(placeName)&count=10&language=fr&format=json") else {
-            print("Invalid URL")
-            throw ErrorPerso.invalidURL
-        }
-        
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            
-            // Decode the top-level JSON as a dictionary
-            guard let topLevelJSON = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-                throw ErrorPerso.decodingFailed
-            }
-            
-            // Extract the array of cities from the "results" key
-            guard let results = topLevelJSON["results"] as? [[String: Any]] else {
-                throw ErrorPerso.decodingFailed
-            }
-            
-            // Decode each city individually, skipping items with missing or unexpected keys
-            var decodedCities: [City] = []
-            for result in results {
+            Task {
                 do {
-                    let jsonData = try JSONSerialization.data(withJSONObject: result, options: [])
-                    let decodedCity = try JSONDecoder().decode(City.self, from: jsonData)
-                    decodedCities.append(decodedCity)
+                    if searchText.isEmpty {
+                        cities = try await defaultfetch()
+                    } else {
+                        cities = try await secondfetch(for: searchText)
+                    }
                 } catch {
-                    print("Error decoding city:", error)
+                    print("Error fetching cities: \(error)")
                 }
             }
-            return decodedCities
-        } catch {
-            print("Error fetching cities:", error)
-            throw error
         }
+        
+        func secondfetch(for placeName: String) async throws -> [City] {
+            guard let url = URL(string: "https://geocoding-api.open-meteo.com/v1/search?name=\(placeName)&count=10&language=fr&format=json") else {
+                print("Invalid URL")
+                throw ErrorPerso.invalidURL
+            }
+            
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                
+                // Decode the top-level JSON as a dictionary
+                guard let topLevelJSON = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
+                    throw ErrorPerso.decodingFailed
+                }
+                
+                // Extract the array of cities from the "results" key
+                guard let results = topLevelJSON["results"] as? [[String: Any]] else {
+                    throw ErrorPerso.decodingFailed
+                }
+                
+                // Decode each city individually, skipping items with missing or unexpected keys
+                var decodedCities: [City] = []
+                for result in results {
+                    do {
+                        let jsonData = try JSONSerialization.data(withJSONObject: result, options: [])
+                        let decodedCity = try JSONDecoder().decode(City.self, from: jsonData)
+                        decodedCities.append(decodedCity)
+                    } catch {
+                        print("Error decoding city:", error)
+                    }
+                }
+                return decodedCities
+            } catch {
+                print("Error fetching cities:", error)
+                throw error
+            }
+        }
+
+    func defaultfetch() async throws -> [City] {
+        var allCities: [City] = []
+        
+        let placeNames = ["Paris","New York", "Barcelone","Rome", "Berlin","Marseille", "Bordeaux"]
+        for placeName in placeNames {
+            guard let url = URL(string: "https://geocoding-api.open-meteo.com/v1/search?name=\(placeName)&count=1&language=fr&format=json") else {
+                print("Invalid URL")
+                throw ErrorPerso.invalidURL
+            }
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                let topLevelJSON = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+                
+                if let results = topLevelJSON?["results"] as? [[String: Any]] {
+                    // Convert the array of dictionaries to JSON data
+                    let jsonData = try JSONSerialization.data(withJSONObject: results, options: [])
+                    // Decode the array of City from the new JSON data
+                    let decodedCities = try JSONDecoder().decode([City].self, from: jsonData)
+                    allCities.append(contentsOf: decodedCities)
+                } else {
+                    throw ErrorPerso.decodingFailed
+                    // Decode each city individually, skipping items with missing or unexpected keys
+                }
+            } catch {
+                print("Error fetching cities:", error)
+                throw error
+            }
+        }
+        
+        return allCities
     }
+
 
 }
 
@@ -184,17 +237,17 @@ struct SecondView: View {
 
         var body: some View {
             HStack {
-                /** refresh a chaque input
+                // refresh a chaque input
                  TextField("Search", text: $text)
                                  .textFieldStyle(RoundedBorderTextFieldStyle())
                                  .padding(.horizontal)
                                  .onChange(of: text) { _ in
                                      onSearch()
                                  }
-                 */
+                 /*
                 TextField("Search", text: $text, onCommit: {
                     onSearch()
-                })
+                })*/
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
 
