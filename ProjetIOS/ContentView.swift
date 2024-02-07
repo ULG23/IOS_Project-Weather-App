@@ -25,13 +25,14 @@ struct ContentView: View {
                     label: {
                         EmptyView()
                     });
-                ScrollView {
+                //This scrollView don't work, problem with lot's of favorite (maybe with a section)
+               // ScrollView {
                     List(favorite.addedCities) { city in
                         NavigationLink(destination: CityView(viewModel: CityViewModel(), city: city)) {
                             Text(city.name)
                         }
                     };
-                }
+              //  }
 
 
             }
@@ -139,7 +140,7 @@ struct SecondView: View {
     }
     
     func secondfetch(for placeName: String) async throws -> [City] {
-        guard let url = URL(string: "https://geocoding-api.open-meteo.com/v1/search?name=\(placeName)&count=1&language=fr&format=json") else {
+        guard let url = URL(string: "https://geocoding-api.open-meteo.com/v1/search?name=\(placeName)&count=10&language=fr&format=json") else {
             print("Invalid URL")
             throw ErrorPerso.invalidURL
         }
@@ -148,23 +149,33 @@ struct SecondView: View {
             let (data, _) = try await URLSession.shared.data(from: url)
             
             // Decode the top-level JSON as a dictionary
-            let topLevelJSON = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-            
-            // Extract the array of cities from the "results" key
-            if let results = topLevelJSON?["results"] as? [[String: Any]] {
-                // Convert the array of dictionaries to JSON data
-                let jsonData = try JSONSerialization.data(withJSONObject: results, options: [])
-                // Decode the array of City from the new JSON data
-                let decodedCities = try JSONDecoder().decode([City].self, from: jsonData)
-                return decodedCities
-            } else {
+            guard let topLevelJSON = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
                 throw ErrorPerso.decodingFailed
             }
+            
+            // Extract the array of cities from the "results" key
+            guard let results = topLevelJSON["results"] as? [[String: Any]] else {
+                throw ErrorPerso.decodingFailed
+            }
+            
+            // Decode each city individually, skipping items with missing or unexpected keys
+            var decodedCities: [City] = []
+            for result in results {
+                do {
+                    let jsonData = try JSONSerialization.data(withJSONObject: result, options: [])
+                    let decodedCity = try JSONDecoder().decode(City.self, from: jsonData)
+                    decodedCities.append(decodedCity)
+                } catch {
+                    print("Error decoding city:", error)
+                }
+            }
+            return decodedCities
         } catch {
-            print(error)
+            print("Error fetching cities:", error)
             throw error
         }
     }
+
 }
 
     struct SearchBar: View {
