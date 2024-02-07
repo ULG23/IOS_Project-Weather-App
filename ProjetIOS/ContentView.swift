@@ -25,21 +25,26 @@ struct ContentView: View {
                     label: {
                         EmptyView()
                     });
-                List(favorite.addedCities) { city in
-                    NavigationLink(destination: CityView(viewModel: CityViewModel(), city: city)) {
-                        Text(city.name)
-                    }
-                };
+                ScrollView {
+                    List(favorite.addedCities) { city in
+                        NavigationLink(destination: CityView(viewModel: CityViewModel(), city: city)) {
+                            Text(city.name)
+                        }
+                    };
+                }
 
-            
 
             }
-            .navigationBarItems(leading: Button(action: {
+            .navigationBarItems(trailing: Button(action: {
                 // Button action to present the SecondView
                 isSecondViewPresented = true
             }, label: {
-                Image(systemName: "arrow.left.circle")
-                    .imageScale(.large)
+                HStack {
+                    Text("add")
+                    Image(systemName: "arrow.right.circle")
+                        .imageScale(.large)
+                    
+                }
             }))
             .navigationBarTitle("Météo", displayMode: .inline)
         }
@@ -133,7 +138,7 @@ struct SecondView: View {
     }
     
     func secondfetch(for placeName: String) async throws -> [City] {
-        guard let url = URL(string: "https://geocoding-api.open-meteo.com/v1/search?name=\(placeName)&count=2&language=fr&format=json") else {
+        guard let url = URL(string: "https://geocoding-api.open-meteo.com/v1/search?name=\(placeName)&count=1&language=fr&format=json") else {
             print("Invalid URL")
             throw ErrorPerso.invalidURL
         }
