@@ -155,21 +155,30 @@ struct ContentCityView: View {
         VStack {
             HStack {
                 WeatherConditionView(weatherCode: viewModel.weatherForecast?.current.weather_code ?? 0.0)
-                Spacer()
-                
+                    .frame(maxHeight: .infinity)
+                    .padding()
+                                    
                 Text("Actual Temperature: \(viewModel.weatherForecast?.current.temperature_2m.roundDouble() ?? "0")°")
                     .font(.system(size: 20))
                     .fontWeight(.bold)
-                    .padding()
                     .multilineTextAlignment(.center)
+                    .padding()
+                    .frame(maxWidth: .infinity)
             }
             
-            Spacer().frame(height: 50)
             
-            AsyncImageView(url: URL(string: "https://cdn.pixabay.com/photo/2020/04/18/01/04/cityscape-5057263_1280.png")).frame(maxHeight: 200)
-            
+            AsyncImageView(url: URL(string: "https://cdn.pixabay.com/photo/2020/04/18/01/04/cityscape-5057263_1280.png"))
+                .frame(width: 400, height: 200)
+                .mask(LinearGradient(gradient: Gradient(stops: [
+                            .init(color: .black, location: 0),
+                            .init(color: .clear, location: 1),
+                            .init(color: .black, location: 1),
+                            .init(color: .clear, location: 1)
+                        ]), startPoint: .top, endPoint: .bottom))
+                .clipShape(Circle())
             Spacer()
         }
+
         .frame(maxWidth: .infinity, alignment: .trailing)
         .background(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
     }
