@@ -119,128 +119,6 @@ class CityViewModel: ObservableObject {
     }
 }
 
-//struct CityView: View {
-//    @ObservedObject var viewModel: CityViewModel
-//    @State private var isCityAdded: Bool = false
-//    @EnvironmentObject var addedcity: AddedCities
-//    
-//    var city: City
-//    
-//    var body: some View {
-//        VStack(spacing: 0) {
-//            // Upper part of the view
-//            ZStack(alignment: .leading) {
-//                VStack(alignment: .leading, spacing: 5) {
-//                    Text(city.name)
-//                        .bold()
-//                        .font(.title)
-//                    
-//                    Text("Today, \(Date().formatted(.dateTime.month().day().hour().minute()))")
-//                        .fontWeight(.light)
-//                }
-//                .padding()
-//                .frame(maxWidth: .infinity, alignment: .leading)
-//                
-//                Spacer()
-//                
-//                VStack {
-//                    // Your existing content
-//                    HStack {
-//                        VStack(spacing: 20) {
-//                            Image(systemName: "cloud")
-//                                .font(.system(size: 40))
-//                            
-//                            Text("WeatherCondition")
-//                        }
-//                        .frame(width: 150, alignment: .leading)
-//                        
-//                        Spacer()
-//                        
-//                        Text("Actual Temperature: \(viewModel.weatherForecast?.current.temperature_2m.roundDouble() ?? "0")°")
-//                            .font(.system(size: 20))
-//                            .fontWeight(.bold)
-//                            .padding()
-//                    }
-//                    
-//                    Spacer()
-//                        .frame(height:  80)
-//                    
-//                    AsyncImage(url: URL(string: "https://cdn.pixabay.com/photo/2020/04/18/01/04/cityscape-5057263_1280.png")) { image in
-//                        image
-//                            .resizable()
-//                            .aspectRatio(contentMode: .fit)
-//                            .frame(width: 350)
-//                    } placeholder: {
-//                        ProgressView()
-//                    }
-//                    
-//                    Spacer()
-//                }
-//                .frame(maxWidth: .infinity, alignment: .trailing)
-//            }
-//            .background(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
-//            .preferredColorScheme(.dark)
-//            
-//            // TabView at the bottom
-//            TabView {
-//                ForEach(viewModel.weatherForecast?.daily.time.indices ?? 0..<0, id: \.self) { index in
-//                    VStack(alignment: .leading, spacing: 20) {
-//                        Text("Weather for Day \(index + 1)")
-//                            .bold()
-//                            .padding(.bottom)
-//                        
-//                        HStack {
-//                            WeatherRow(logo: "thermometer", name: "Temperature Max", value: "\(viewModel.weatherForecast?.daily.temperature_2m_max[index].roundDouble() ?? "0")°")
-//                            Spacer()
-//                            WeatherRow(logo: "cloud.rain", name: "Rain", value: "\(viewModel.weatherForecast?.daily.rain_sum[index].roundDouble() ?? "0")%")
-//                        }
-//                        
-//                        HStack {
-//                            WeatherRow(logo: "wind", name: "Wind Max Speed", value: "\(viewModel.weatherForecast?.daily.wind_speed_10m_max[index].roundDouble() ?? "0") m/s")
-//                            Spacer()
-//                            WeatherRow(logo: "sun.horizon.fill", name: "Sunshine Duration", value: {
-//                                let sunshineDurationInSeconds = viewModel.weatherForecast?.daily.sunshine_duration[index] ?? 0
-//                                let convertedDuration = Float(sunshineDurationInSeconds).secondsToHoursMinutes()
-//                                
-//                                return "\(convertedDuration.hours)h \(convertedDuration.minutes)min"
-//                            }())
-//                        }
-//                    }
-//                    .padding()
-//                    .tag(index)
-//                }
-//            }
-//            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-//            .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
-//            .frame(height: 200)
-//        }
-//        .edgesIgnoringSafeArea(.bottom)
-//        .onAppear {
-//            Task {
-//                await viewModel.fetchCityWeather(latitude: city.latitude, longitude: city.longitude)
-//                isCityAdded = addedcity.addedCities.firstIndex(where: { $0.id == city.id }) != nil ? true : false
-//            }
-//        }
-//        .navigationBarItems(trailing: Button(action: {
-//            if !isCityAdded {
-//                addedcity.addedCities.append(city)
-//                isCityAdded.toggle()
-//            } else {
-//                if let index = addedcity.addedCities.firstIndex(where: { $0.id == city.id }) {
-//                    addedcity.addedCities.remove(at: index)
-//                    isCityAdded.toggle()
-//                }
-//            }
-//            print("Top-right button tapped")
-//        }) {
-//            Text(isCityAdded ? "Remove from List" : "Add to List")
-//                .foregroundColor(.blue)
-//        })
-//    }
-//}
-
-
-
 struct CityView: View {
     @ObservedObject var viewModel: CityViewModel
     @State private var isCityAdded: Bool = false
@@ -268,7 +146,6 @@ struct CityView: View {
         }
     }
 }
-
 
 
 struct ContentCityView: View {
