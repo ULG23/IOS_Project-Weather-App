@@ -16,31 +16,67 @@ struct WeatherData: Decodable {
     let timezone_abbreviation: String
     let elevation: Double
     
-    let hourly_units: HourlyUnits
-    let hourly: HourlyData
-    
-    struct HourlyUnits: Decodable {
-        let time: String
-        let temperature_2m: String
-        let relative_humidity_2m: String
-        let precipitation_probability: String
-        let rain: String
-        let showers: String
-        let surface_pressure: String
-        let wind_speed_10m: String
+    let current: Current
+    let daily: Daily
+
+    struct Current: Decodable {
+        let time: Date
+        let temperature_2m: Float
+
+        private enum CodingKeys: String, CodingKey {
+            case time, temperature_2m
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            let timeString = try container.decode(String.self, forKey: .time)
+
+            guard let time = DateFormatter.apiDateFormatCurrent.date(from: timeString) else {
+                throw DecodingError.dataCorruptedError(forKey: .time, in: container, debugDescription: "Invalid date format")
+            }
+            self.time = time
+            self.temperature_2m = try container.decode(Float.self, forKey: .temperature_2m)
+        }
     }
-    
-    struct HourlyData: Decodable {
-        let time: [String]
-        let temperature_2m: [Float]
-        let relative_humidity_2m: [Int]
-        let precipitation_probability: [Int]
-        let rain: [Float]
-        let showers: [Float]
-        let surface_pressure: [Float]
-        let wind_speed_10m: [Float]
+
+
+
+    struct Daily: Decodable {
+        let time: [Date]
+        let weather_code: [Int]
+        let temperature_2m_max: [Float]
+        let temperature_2m_min: [Float]
+        let sunshine_duration: [Float]
+        let precipitation_sum: [Float]
+        let rain_sum: [Float]
+        let precipitation_probability_max: [Float]
+        let wind_speed_10m_max: [Float]
+
+        private enum CodingKeys: String, CodingKey {
+            case time, weather_code, temperature_2m_max, temperature_2m_min, sunshine_duration, precipitation_sum, rain_sum, precipitation_probability_max, wind_speed_10m_max
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            let timeStrings = try container.decode([String].self, forKey: .time)
+            time = try timeStrings.map { dateString in
+                guard let date = DateFormatter.apiDateFormatDaily.date(from: dateString) else {
+                    throw DecodingError.dataCorruptedError(forKey: .time, in: container, debugDescription: "Invalid date format")
+                }
+                return date
+            }
+            weather_code = try container.decode([Int].self, forKey: .weather_code)
+            temperature_2m_max = try container.decode([Float].self, forKey: .temperature_2m_max)
+            temperature_2m_min = try container.decode([Float].self, forKey: .temperature_2m_min)
+            sunshine_duration = try container.decode([Float].self, forKey: .sunshine_duration)
+            precipitation_sum = try container.decode([Float].self, forKey: .precipitation_sum)
+            rain_sum = try container.decode([Float].self, forKey: .rain_sum)
+            precipitation_probability_max = try container.decode([Float].self, forKey: .precipitation_probability_max)
+            wind_speed_10m_max = try container.decode([Float].self, forKey: .wind_speed_10m_max)
+        }
     }
 }
+
 class CityViewModel: ObservableObject {
     @Published var weatherForecast: WeatherData?
     @Published var isFetchingWeather = false
@@ -66,14 +102,15 @@ class CityViewModel: ObservableObject {
     }
     
     func fetchWeatherData(latitude: Double, longitude: Double) async throws -> WeatherData {
-        let urlString = "https://api.open-meteo.com/v1/forecast?latitude=\(latitude)&longitude=\(longitude)&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,rain,showers,surface_pressure,wind_speed_10m&forecast_days=1&format=json"
+        let urlString = "https://api.open-meteo.com/v1/forecast?latitude=\(latitude)&longitude=\(longitude)&current=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunshine_duration,precipitation_sum,rain_sum,precipitation_probability_max,wind_speed_10m_max&format=json"
         guard let url = URL(string: urlString) else {
             throw ErrorPerso.invalidURL
         }
 
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            return try JSONDecoder().decode(WeatherData.self, from: data)
+            let temp = try JSONDecoder().decode(WeatherData.self, from: data)
+            return temp
         } catch {
             // Assuming you want to print or log the error before throwing it
             print("Error fetching city weather: \(error)")
@@ -91,46 +128,97 @@ struct CityView: View {
     var city: City
     
     var body: some View {
-        VStack {
-            Text(city.name)
-                .font(.title)
-                .padding()
-            
-            if viewModel.isFetchingWeather {
-                ProgressView()
-            }
-            
-            if let errorMessage = viewModel.errorMessage {
-                Text("Error: \(errorMessage)")
-                    .foregroundColor(.red)
-            }
-
-
-            // Display weather data if available
-            if let weather = viewModel.weatherForecast {
-                ScrollView {
-                    LazyVStack {
-                        ForEach(weather.hourly.time.indices, id: \.self) { index in
-                            displayWeatherData(index: index, weather: weather.hourly)
-                                .padding()
-                                .background(Color.gray)
-                                .cornerRadius(10)
-                                .shadow(radius: 5)
-                                .padding(.horizontal)
-                        }
-                    }
-                }
-            }
-        }
+          ZStack(alignment: .leading) {
+              VStack {
+                  VStack(alignment: .leading, spacing: 5) {
+                      Text(city.name)
+                          .bold()
+                          .font(.title)
+                      
+                      Text("Today, \(Date().formatted(.dateTime.month().day().hour().minute()))")
+                          .fontWeight(.light)
+                  }
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  
+                  Spacer()
+                  
+                  VStack {
+                      HStack {
+                          VStack(spacing: 20) {
+                              Image(systemName: "cloud")
+                                  .font(.system(size: 40))
+                              
+                              Text("WeatherCondition")
+                          }
+                          .frame(width: 150, alignment: .leading)
+                          
+                          Spacer()
+                          
+                          Text("Actual Temperature: \(viewModel.weatherForecast?.current.temperature_2m.roundDouble() ?? "0")°")
+                              .font(.system(size: 20))
+                              .fontWeight(.bold)
+                              .padding()
+                      }
+                      
+                      Spacer()
+                          .frame(height:  80)
+                      
+                      AsyncImage(url: URL(string: "https://cdn.pixabay.com/photo/2020/01/24/21/33/city-4791269_960_720.png")) { image in
+                          image
+                              .resizable()
+                              .aspectRatio(contentMode: .fit)
+                              .frame(width: 350)
+                      } placeholder: {
+                          ProgressView()
+                      }
+                      
+                      Spacer()
+                  }
+                  .frame(maxWidth: .infinity, alignment: .trailing)
+              }
+              .padding()
+              .frame(maxWidth: .infinity, alignment: .leading)
+              
+              VStack {
+                  Spacer()
+                  VStack(alignment: .leading, spacing: 20) {
+                      Text("Weather now")
+                          .bold()
+                          .padding(.bottom)
+                      
+                      HStack {
+                          WeatherRow(logo: "thermometer", name: "Temperature Max", value: "\(viewModel.weatherForecast?.daily.temperature_2m_max.first?.roundDouble() ?? "0")°")
+                          Spacer()
+                          WeatherRow(logo: "cloud.rain", name: "Rain", value: "\(viewModel.weatherForecast?.daily.rain_sum.first?.roundDouble() ?? "0")%")
+                      }
+                      
+                      HStack {
+                          WeatherRow(logo: "wind", name: "Wind Max Speed", value: "\(viewModel.weatherForecast?.daily.wind_speed_10m_max.first?.roundDouble() ?? "0") m/s")
+                          Spacer()
+                          WeatherRow(logo: "sun.horizon.fill", name: "Sunshine Duration", value: {
+                              let sunshineDurationInMinutes = viewModel.weatherForecast?.daily.sunshine_duration.first ?? 0
+                              let convertedDuration = sunshineDurationInMinutes.minutesToHoursMinutes()
+                              
+                              return "\(convertedDuration.hours)h \(convertedDuration.minutes)min"
+                          }())
+                      }
+                  }
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .padding()
+                  .padding(.bottom, 20)
+                  .foregroundColor(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
+                  .background(.white)
+              }
+          }
+          .edgesIgnoringSafeArea(.bottom)
+          .background(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
+          .preferredColorScheme(.dark)
         .onAppear {
             Task {
                 await viewModel.fetchCityWeather(latitude: city.latitude, longitude: city.longitude);
                 isCityAdded = addedcity.addedCities.firstIndex(where: { $0.id == city.id }) != nil ? true : false
             }
         }.navigationBarItems(trailing: Button(action: {
-            // Handle button tap for the top-right "Add" button
-            // You can perform any action here
-           
             if !isCityAdded {
                 //addedcity.addedCities.append("\(city.name): Lat \(city.latitude), Lon \(city.longitude)")
                 addedcity.addedCities.append(city)
@@ -145,7 +233,6 @@ struct CityView: View {
 
             }
             print("Top-right button tapped")
-            // Optionally, you can use the addedCities array as needed
         }) {
             Text(isCityAdded ? "Remove from List" : "Add to List")
                 .foregroundColor(.blue)
@@ -153,70 +240,16 @@ struct CityView: View {
         })
     }
     
-    private func displayWeatherData(index: Int, weather: WeatherData.HourlyData) -> some View {
-        VStack(alignment: .leading) {
-            Text(weather.time.indices.contains(index) ? weather.time[index] : "")
-                .font(.headline)
-            
-            if index < weather.temperature_2m.count {
-                Text("Temperature: \(String(format: "%.1f", weather.temperature_2m[index]))°C")
-            }
-            if index < weather.relative_humidity_2m.count {
-                Text("Relative Humidity: \(weather.relative_humidity_2m[index])%")
-            }
-            if index < weather.precipitation_probability.count {
-                Text("Precipitation Probability: \(weather.precipitation_probability[index])%")
-            }
-            if index < weather.rain.count {
-                Text("Rain: \(String(format: "%.1f", weather.rain[index])) mm")
-            }
-            if index < weather.showers.count {
-                Text("Showers: \(String(format: "%.1f", weather.showers[index])) mm")
-            }
-            if index < weather.surface_pressure.count {
-                Text("Surface Pressure: \(String(format: "%.1f", weather.surface_pressure[index])) hPa")
-            }
-            if index < weather.wind_speed_10m.count {
-                Text("Wind Speed: \(String(format: "%.1f", weather.wind_speed_10m[index])) m/s")
-            }
-        }
-    }
+    private func formattedDate(from timestamp: String) -> String {
+          guard let date = convertToDate(timestamp: timestamp) else { return "" }
+          return date.formattedDate()
+      }
+
 }
 
-    
-struct WeatherInfoRow: View {
-    var title: String
-    var value: String
-    
-    var body: some View {
-        HStack {
-            Text(title)
-            Spacer()
-            Text(value)
-        }
-    }
-}
 
-extension Array where Element: Any {
-    func element(at index: Int) -> Element? {
-        return indices.contains(index) ? self[index] : nil
-    }
-}
-
-extension Float {
-    func formattedTemperature() -> String {
-        return String(format: "%.1f", self) + "°"
-    }
-    
-    func formattedRain() -> String {
-        return String(format: "%.1f", self)
-    }
-    
-    func formattedPressure() -> String {
-        return String(format: "%.2f", self)
-    }
-    
-    func formattedWindSpeed() -> String {
-        return String(format: "%.1f", self)
-    }
+private func convertToDate(timestamp: String) -> Date? {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
+    return dateFormatter.date(from: timestamp)
 }
