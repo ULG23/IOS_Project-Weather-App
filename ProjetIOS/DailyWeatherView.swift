@@ -2,7 +2,7 @@
 //  DailyWeatherView.swift
 //  ProjetIOS
 //
-//  Created by Gauthier MIGUET on 07/02/2024.
+//  Created by Justin SOTTILE & Gauthier MIGUET on 07/02/2024.
 //
 
 import Foundation
