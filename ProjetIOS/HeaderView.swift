@@ -25,12 +25,12 @@ struct HeaderView: View {
                 Text("Today, \(Date().formatted(.dateTime.month().day().hour().minute()))")
                     .fontWeight(.light)
             }
-            .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
             
             Spacer()
             
         }
+        .padding()
         .background(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
         .preferredColorScheme(.dark)
         .navigationBarItems(trailing: AddRemoveButton(isCityAdded: $isCityAdded, city: city))

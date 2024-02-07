@@ -15,9 +15,11 @@ struct DailyWeatherView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Weather for Day \(index + 1)")
-                .bold()
-                .padding(.bottom)
+            if let date = weatherForecast?.daily.time[index] {
+                Text("Weather for \(formattedDate(date: date))")
+                    .bold()
+                    .padding(.bottom)
+            }
             
             HStack {
                 WeatherRow(logo: "thermometer", name: "Temperature Max", value: "\(weatherForecast?.daily.temperature_2m_max[index].roundDouble() ?? "0")°")
@@ -36,5 +38,13 @@ struct DailyWeatherView: View {
                 }())
             }
         }
+        .padding()
+    }
+    
+    private func formattedDate(date: Date) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd/MM"
+        return dateFormatter.string(from: date)
     }
 }
+

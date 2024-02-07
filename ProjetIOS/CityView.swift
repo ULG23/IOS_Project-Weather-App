@@ -127,25 +127,25 @@ struct CityView: View {
     var city: City
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Upper part of the view
-            HeaderView(city: city, isCityAdded: $isCityAdded, addedCity: addedCity, viewModel: viewModel)
-            
-            // Content
-            ContentCityView(viewModel: viewModel)
-            
-            // TabView at the bottom
-            WeatherTabView(viewModel: viewModel)
-        }
-        .edgesIgnoringSafeArea(.bottom)
-        .onAppear {
-            Task {
-                await viewModel.fetchCityWeather(latitude: city.latitude, longitude: city.longitude)
-                isCityAdded = addedCity.addedCities.contains { $0.id == city.id }
+            VStack(spacing: 0) {
+                // Upper part of the view
+                HeaderView(city: city, isCityAdded: $isCityAdded, addedCity: addedCity, viewModel: viewModel)
+                
+                // Content
+                ContentCityView(viewModel: viewModel)
+                
+                // TabView at the bottom
+                WeatherTabView(viewModel: viewModel)
+            }
+            .edgesIgnoringSafeArea(.bottom)
+            .onAppear {
+                Task {
+                    await viewModel.fetchCityWeather(latitude: city.latitude, longitude: city.longitude)
+                    isCityAdded = addedCity.addedCities.contains { $0.id == city.id }
+                }
             }
         }
     }
-}
 
 
 struct ContentCityView: View {
@@ -157,7 +157,9 @@ struct ContentCityView: View {
                 WeatherConditionView(weatherCode: viewModel.weatherForecast?.current.weather_code ?? 0.0)
                     .frame(maxHeight: .infinity)
                     .padding()
-                                    
+                
+                Spacer(minLength: 0)
+                
                 Text("Actual Temperature: \(viewModel.weatherForecast?.current.temperature_2m.roundDouble() ?? "0")°")
                     .font(.system(size: 20))
                     .fontWeight(.bold)

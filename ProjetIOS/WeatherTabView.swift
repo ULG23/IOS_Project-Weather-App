@@ -23,7 +23,6 @@ struct WeatherTabView: View {
         .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
         .frame(height: 200)
         .background(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
-
     }
 }
 
