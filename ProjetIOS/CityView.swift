@@ -92,12 +92,12 @@ class CityViewModel: ObservableObject {
             
             await MainActor.run {
                 self.weatherForecast = weather
-                self.isFetchingWeather = false // Move isFetchingWeather update here
+                self.isFetchingWeather = false
             }
         } catch {
             await MainActor.run {
                 errorMessage = "Failed to fetch weather data: \(error.localizedDescription)"
-                self.isFetchingWeather = false // Also set isFetchingWeather to false here
+                self.isFetchingWeather = false 
             }
         }
     }
@@ -112,7 +112,6 @@ class CityViewModel: ObservableObject {
             let (data, _) = try await URLSession.shared.data(from: url)
             return try JSONDecoder().decode(WeatherData.self, from: data)
         } catch {
-            // Assuming you want to print or log the error before throwing it
             print("Error fetching city weather: \(error)")
             throw ErrorPerso.fetchFailed
         }

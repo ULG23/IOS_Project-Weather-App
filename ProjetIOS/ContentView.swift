@@ -39,7 +39,7 @@ struct ContentView: View {
                         Capsule()
                             .fill(Color.blue)
                             .padding(2)
-                    )// Set background color for list rows
+                    )
                 }
 
 
@@ -52,7 +52,7 @@ struct ContentView: View {
                 HStack {
                     Text("add cities")
                         .foregroundColor(Color.blue)
-                    Image(systemName: "chevron.right") // Utilisez "chevron.left" pour la flèche de retour
+                    Image(systemName: "chevron.right")
                         .imageScale(.large)
                         .foregroundColor(Color.blue)
                     
@@ -244,10 +244,6 @@ struct SecondView: View {
                                  .onChange(of: text) { _ in
                                      onSearch()
                                  }
-                 /*
-                TextField("Search", text: $text, onCommit: {
-                    onSearch()
-                })*/
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
 
